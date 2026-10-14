@@ -1,0 +1,75 @@
+[INFO] [1791987193.999501845] [flight_test]: Flight test node started
+[INFO] [1791987194.000474367] [flight_test]: Waiting for ArduPilot and ROS services...
+[INFO] [1791987194.018403730] [flight_test]: Target mode: dx=7.00 m, dy=0.80 m, tolerance=0.20 m
+[INFO] [1791987195.149216276] [flight_test]: ArduPilot and all services are available
+[INFO] [1791987195.349173154] [flight_test]: Running pre-arm check
+[INFO] [1791987195.358740412] [flight_test]: Initial position (Gazebo): x=0.000, y=0.000, z=0.195
+[INFO] [1791987195.359528095] [flight_test]: Pre-arm check passed: Vehicle is Armable
+[INFO] [1791987195.549013182] [flight_test]: Requesting flight mode 4
+[INFO] [1791987195.563370387] [flight_test]: GUIDED mode enabled
+[INFO] [1791987195.748475901] [flight_test]: Requesting motor arming
+[INFO] [1791987195.777593377] [flight_test]: Motors armed
+[INFO] [1791987195.948413973] [flight_test]: Requesting takeoff to 2.0 m
+[INFO] [1791987195.960289133] [flight_test]: Takeoff command accepted
+[INFO] [1791987195.960934517] [flight_test]: Hovering for 30.0 seconds
+[INFO] [1791987196.150082228] [flight_test]: Velocity commands -> /ap/v1/cmd_vel
+[INFO] [1791987196.153722743] [flight_test]: ArduPilot pose <- /ap/v1/pose/filtered
+[INFO] [1791987196.154779908] [flight_test]: Climbing: height 0.00 / 2.0 m
+[INFO] [1791987197.347990662] [flight_test]: Climbing: height 0.00 / 2.0 m
+[INFO] [1791987198.348182638] [flight_test]: Climbing: height 0.00 / 2.0 m
+[INFO] [1791987199.348982176] [flight_test]: Climbing: height 0.00 / 2.0 m
+[INFO] [1791987200.548768548] [flight_test]: Climbing: height 0.00 / 2.0 m
+[INFO] [1791987201.749166577] [flight_test]: Climbing: height 0.00 / 2.0 m
+[INFO] [1791987202.949507852] [flight_test]: Climbing: height 0.00 / 2.0 m
+[INFO] [1791987204.148236962] [flight_test]: Climbing: height 0.00 / 2.0 m
+[INFO] [1791987205.348271946] [flight_test]: Climbing: height 0.00 / 2.0 m
+[INFO] [1791987206.349497081] [flight_test]: Climbing: height 0.00 / 2.0 m
+[INFO] [1791987207.349154194] [flight_test]: Climbing: height 0.00 / 2.0 m
+[INFO] [1791987208.547789986] [flight_test]: Climbing: height 0.00 / 2.0 m
+[INFO] [1791987209.747811465] [flight_test]: Climbing: height 0.00 / 2.0 m
+[INFO] [1791987210.747957100] [flight_test]: Climbing: height 0.00 / 2.0 m
+[INFO] [1791987211.749768019] [flight_test]: Climbing: height 0.01 / 2.0 m
+[INFO] [1791987215.750022453] [flight_test]: Climbing: height 0.09 / 2.0 m
+[INFO] [1791987216.949644790] [flight_test]: Climbing: height 0.24 / 2.0 m
+[INFO] [1791987218.148575908] [flight_test]: Climbing: height 0.45 / 2.0 m
+[INFO] [1791987219.149737507] [flight_test]: Climbing: height 0.68 / 2.0 m
+[INFO] [1791987220.348746235] [flight_test]: Climbing: height 1.03 / 2.0 m
+[INFO] [1791987221.549506578] [flight_test]: Climbing: height 1.34 / 2.0 m
+[INFO] [1791987222.550041477] [flight_test]: Climbing: height 1.61 / 2.0 m
+[INFO] [1791987223.749233198] [flight_test]: Climbing: height 1.84 / 2.0 m
+[INFO] [1791987223.750746294] [flight_test]: Takeoff altitude reached: 1.84 m, stabilizing
+[INFO] [1791987226.949666402] [flight_test]: Frame alignment: Gazebo vs ArduPilot yaw offset = -0.0 deg
+[INFO] [1791987226.952284874] [flight_test]: Start position (x0, y0): (0.001, 0.001) m
+[INFO] [1791987226.954194544] [flight_test]: Target (x0-7.0, y0-0.8): (-6.999, -0.799) m, distance 7.05 m
+[INFO] [1791987226.956322401] [flight_test]: Flying to target
+[INFO] [1791987227.150717663] [flight_test]: Position (0.00, 0.00) | distance 7.05 m | speed 1.00 m/s
+[INFO] [1791987228.350298197] [flight_test]: Position (-0.00, 0.00) | distance 7.04 m | speed 1.00 m/s
+[INFO] [1791987229.351377416] [flight_test]: Position (-0.04, -0.00) | distance 7.00 m | speed 1.00 m/s
+[INFO] [1791987230.550814367] [flight_test]: Position (-0.21, -0.02) | distance 6.84 m | speed 1.00 m/s
+[INFO] [1791987231.550859035] [flight_test]: Position (-0.42, -0.05) | distance 6.62 m | speed 1.00 m/s
+[INFO] [1791987232.750715148] [flight_test]: Position (-0.67, -0.09) | distance 6.37 m | speed 1.00 m/s
+[INFO] [1791987233.951327172] [flight_test]: Position (-0.68, -0.15) | distance 6.36 m | speed 1.00 m/s
+[INFO] [1791987234.951036382] [flight_test]: Position (-0.76, -0.30) | distance 6.26 m | speed 1.00 m/s
+[INFO] [1791987236.150565254] [flight_test]: Position (-0.76, -0.55) | distance 6.24 m | speed 1.00 m/s
+[INFO] [1791987237.150869855] [flight_test]: Position (-0.78, -0.34) | distance 6.23 m | speed 1.00 m/s
+[INFO] [1791987238.348627628] [flight_test]: Position (-0.78, -0.36) | distance 6.23 m | speed 1.00 m/s
+[INFO] [1791987239.349305130] [flight_test]: Position (-0.78, -0.41) | distance 6.23 m | speed 1.00 m/s
+[INFO] [1791987240.349407649] [flight_test]: Position (-0.80, -0.26) | distance 6.23 m | speed 1.00 m/s
+[INFO] [1791987241.350061758] [flight_test]: Position (-0.73, -0.17) | distance 6.30 m | speed 1.00 m/s
+[INFO] [1791987242.549528883] [flight_test]: Position (-0.73, -0.17) | distance 6.30 m | speed 1.00 m/s
+[INFO] [1791987243.756202267] [flight_test]: Position (-0.73, -0.16) | distance 6.30 m | speed 1.00 m/s
+[INFO] [1791987244.749030828] [flight_test]: Position (-0.73, -0.15) | distance 6.30 m | speed 1.00 m/s
+[INFO] [1791987245.950405923] [flight_test]: Position (-0.73, -0.17) | distance 6.30 m | speed 1.00 m/s
+[INFO] [1791987247.148563045] [flight_test]: Position (-0.73, -0.17) | distance 6.30 m | speed 1.00 m/s
+[INFO] [1791987251.149338006] [flight_test]: Position (-0.73, -0.17) | distance 6.30 m | speed 1.00 m/s
+[INFO] [1791987252.149022649] [flight_test]: Position (-0.73, -0.17) | distance 6.30 m | speed 1.00 m/s
+[INFO] [1791987253.149538969] [flight_test]: Position (-0.73, -0.17) | distance 6.30 m | speed 1.00 m/s
+[INFO] [1791987254.150157406] [flight_test]: Position (-0.73, -0.17) | distance 6.30 m | speed 1.00 m/s
+[INFO] [1791987255.150264940] [flight_test]: Position (-0.73, -0.17) | distance 6.30 m | speed 1.00 m/s
+[ERROR] [1791987255.350367895] [flight_test]: Drone disarmed unexpectedly during flight to target
+[INFO] [1791987255.352718940] [flight_test]: ========== FLIGHT SUMMARY ==========
+[INFO] [1791987255.354876183] [flight_test]: Final state: ERROR
+[INFO] [1791987255.357041896] [flight_test]: Start position   (x0, y0): (0.001, 0.001) m
+[INFO] [1791987255.358971582] [flight_test]: Target position  (xt, yt): (-6.999, -0.799) m
+[INFO] [1791987255.361006887] [flight_test]: Position after landing   : (-0.733, -0.175, 0.236) m
+[INFO] [1791987255.363436578] [flight_test]: ====================================
