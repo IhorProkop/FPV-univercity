@@ -1,30 +1,65 @@
+"""Крок 1. Розбір журналу .tlog (MAVLink) у таблицю часових рядів.
+
+Беремо повідомлення від автопілота (system 1, component 1):
+  HEARTBEAT           -> режим польоту (custom_mode) і стан arm (біт 128 у base_mode)
+  ATTITUDE            -> крен і тангаж
+  VFR_HUD             -> повітряна і наземна швидкість, вертикальна швидкість
+  GLOBAL_POSITION_INT -> координати, висота над точкою старту, час автопілота
+Результат: all.pkl (один рядок на кожне GLOBAL_POSITION_INT).
+"""
+import math
 from pathlib import Path
-HERE = Path(__file__).resolve().parent          # lab7/analysis
-FLIGHT = HERE.parent / "flight"                 # lab7/flight (журнали польоту)
-import os; os.chdir(HERE)
+
+import pandas as pd
 from pymavlink import mavutil
-import pandas as pd, math, json, datetime
-m=mavutil.mavlink_connection(str(FLIGHT / 'mavproxy_mav.tlog'))
-rows=[]; boot=None; att_roll=None; att_pitch=None; mode=None; armed=None; hud=None
+
+HERE = Path(__file__).resolve().parent            # lab7/analysis
+TLOG = HERE.parent / "flight" / "mavproxy_mav.tlog"
+ARMED_BIT = 128                                   # MAV_MODE_FLAG_SAFETY_ARMED
+
+log = mavutil.mavlink_connection(str(TLOG))
+rows = []
+mode = armed = roll = pitch = hud = None
+
 while True:
-    msg=m.recv_match()
-    if msg is None: break
-    if msg.get_srcSystem()!=1 or msg.get_srcComponent()!=1: continue
-    t=msg.get_type()
-    if t=='HEARTBEAT': mode=msg.custom_mode; armed=bool(msg.base_mode&128)
-    elif t=='ATTITUDE': att_roll=math.degrees(msg.roll); att_pitch=math.degrees(msg.pitch); boot=msg.time_boot_ms
-    elif t=='VFR_HUD': hud=(msg.airspeed,msg.groundspeed,msg.alt,msg.climb,msg.throttle)
-    elif t=='GLOBAL_POSITION_INT' and hud:
-        rows.append(dict(wall=msg._timestamp,boot=msg.time_boot_ms/1000,lat=msg.lat/1e7,lon=msg.lon/1e7,
-            alt_rel=msg.relative_alt/1000,alt_amsl=msg.alt/1000,vx=msg.vx/100,vy=msg.vy/100,vz=msg.vz/100,
-            gs_calc=math.hypot(msg.vx,msg.vy)/100,airspeed=hud[0],groundspeed=hud[1],climb=hud[3],throttle=hud[4],
-            roll=att_roll,pitch=att_pitch,mode=mode,armed=armed))
-df=pd.DataFrame(rows)
-df.to_pickle('all.pkl')
-a=df[df.armed]; i0=a.index[0]; i1=a.index[-1]
-print('arm wall',datetime.datetime.fromtimestamp(df.wall[i0]+3*3600),'disarm',datetime.datetime.fromtimestamp(df.wall[i1]+3*3600))
-print('arm boot',df.boot[i0],'disarm boot',df.boot[i1],'sim dur',df.boot[i1]-df.boot[i0],'wall dur',df.wall[i1]-df.wall[i0])
-print('RTF',(df.boot[i1]-df.boot[i0])/(df.wall[i1]-df.wall[i0]))
-for k,g in df.groupby((df['mode']!=df['mode'].shift()).cumsum()):
-    print('mode',g['mode'].iloc[0],'armed',g.armed.iloc[0],'boot',g.boot.iloc[0],g.boot.iloc[-1])
-print(df.loc[i0-2:i1+2,['alt_rel','airspeed','groundspeed','roll']].describe())
+    msg = log.recv_match()
+    if msg is None:                               # кінець файлу
+        break
+    if msg.get_srcSystem() != 1 or msg.get_srcComponent() != 1:
+        continue                                  # пропускаємо пакети від QGC
+    kind = msg.get_type()
+
+    if kind == "HEARTBEAT":
+        mode = msg.custom_mode                    # 0 STABILIZE, 3 AUTO, 4 GUIDED
+        armed = bool(msg.base_mode & ARMED_BIT)
+    elif kind == "ATTITUDE":
+        roll = math.degrees(msg.roll)
+        pitch = math.degrees(msg.pitch)
+    elif kind == "VFR_HUD":
+        hud = msg
+    elif kind == "GLOBAL_POSITION_INT" and hud is not None:
+        rows.append({
+            "wall": msg._timestamp,               # час запису, годинник ПК
+            "boot": msg.time_boot_ms / 1000,      # час автопілота, с
+            "lat": msg.lat / 1e7,                 # градуси * 10^7 -> градуси
+            "lon": msg.lon / 1e7,
+            "alt_rel": msg.relative_alt / 1000,   # мм -> м, над точкою старту
+            "alt_amsl": msg.alt / 1000,           # мм -> м, над рівнем моря
+            "airspeed": hud.airspeed,             # м/с
+            "groundspeed": hud.groundspeed,       # м/с
+            "climb": hud.climb,                   # м/с
+            "roll": roll,
+            "pitch": pitch,
+            "mode": mode,
+            "armed": armed,
+        })
+
+df = pd.DataFrame(rows)
+df.to_pickle(HERE / "all.pkl")
+
+flight = df[df["armed"]]
+start, end = flight.index[0], flight.index[-1]
+sim = df["boot"][end] - df["boot"][start]
+real = df["wall"][end] - df["wall"][start]
+print(f"arm -> disarm: {sim:.1f} с часу автопілота, {real:.1f} с за годинником ПК")
+print(f"RTF = {sim / real:.2f}")

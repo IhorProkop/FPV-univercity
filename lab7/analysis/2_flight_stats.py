@@ -1,36 +1,73 @@
+"""Крок 2. Показники польоту за .tlog (час автопілота).
+
+Означення (за вимогами викладача):
+  час зльоту  - від початку фактичного набору висоти до заданої висоти H,
+                без часу простою (зависання на 3 м перед AUTO);
+  час польоту - від початку зльоту (відрив) до завершення посадки (торкання).
+Результат: stats.json, flight.pkl.
+"""
+import json
+import math
 from pathlib import Path
-HERE = Path(__file__).resolve().parent          # lab7/analysis
-FLIGHT = HERE.parent / "flight"                 # lab7/flight (журнали польоту)
-import os; os.chdir(HERE)
-import pandas as pd, numpy as np, math, json, datetime
-df=pd.read_pickle('all.pkl')
-arm=df[df.armed]; i0,i1=arm.index[0],arm.index[-1]
-T0=df.boot[i0]
-f=df.loc[i0-8:i1+8].copy(); f['t']=f.boot-T0
-ev={'Takeoff':1792520783.6640239,'WP':1792520892.649216,'Reached2':1792521069.5425558,'Disarm':1792521291.029336,'Arm':1792520613.216596}
-evt={k:float(df.loc[(df.wall-v).abs().idxmin(),'boot']-T0) for k,v in ev.items()}
-print(evt)
-def dist(a,b,c,d):
-    R=6371000; p1,p2=math.radians(a),math.radians(c); dl=math.radians(d-b); dp=p2-p1
-    h=math.sin(dp/2)**2+math.cos(p1)*math.cos(p2)*math.sin(dl/2)**2; return 2*R*math.asin(math.sqrt(h))
-s=df.loc[i0]; e=df.loc[i1]
-tgt=(-35.3630965,149.1637991)
-cr=f[(f.t>evt['WP'])&(f.t<evt['Reached2'])]
-res=dict(arm_wall=str(datetime.datetime.fromtimestamp(df.wall[i0]+3*3600)),disarm_wall=str(datetime.datetime.fromtimestamp(df.wall[i1]+3*3600)),
- sim_dur=df.boot[i1]-T0, wall_dur=df.wall[i1]-df.wall[i0], max_alt=f.alt_rel.max(), t_max_alt=float(f.loc[f.alt_rel.idxmax(),'t']),
- max_gs=f.groundspeed.max(), max_as=f.airspeed.max(), max_roll=f.roll.abs().max(), roll_signed=float(f.loc[f.roll.abs().idxmax(),'roll']), t_roll=float(f.loc[f.roll.abs().idxmax(),'t']),
- max_pitch=f.pitch.abs().max(), max_climb=f.climb.max(), min_climb=f.climb.min(),
- start=(s.lat,s.lon,s.alt_amsl), end=(e.lat,e.lon,e.alt_amsl),
- land_err=dist(e.lat,e.lon,*tgt), path=dist(s.lat,s.lon,e.lat,e.lon), plan_dist=dist(s.lat,s.lon,*tgt),
- cruise_alt_mean=cr.alt_rel.mean(), cruise_alt_min=cr.alt_rel.min(), cruise_alt_max=cr.alt_rel.max(),
- cruise_gs_mean=cr[cr.groundspeed>3.5].groundspeed.mean(), evt=evt)
-# time at which reached 45
-c=f[(f.t>evt['Takeoff'])]; res['t_reach45']=float(c[c.alt_rel>=44.5].t.iloc[0])
-# avg climb in auto takeoff between 5 and 40 m
-seg=f[(f.t>evt['Takeoff'])&(f.alt_rel>5)&(f.alt_rel<40)]; res['climb_avg']=seg.climb.mean()
-seg=f[(f.t>evt['Reached2'])&(f.alt_rel>12)&(f.alt_rel<40)]; res['desc_hi']=seg.climb.mean()
-seg=f[(f.t>evt['Reached2'])&(f.alt_rel>1)&(f.alt_rel<8)]; res['desc_lo']=seg.climb.mean()
-res['guided_alt']=f[(f.t>5)&(f.t<evt['Takeoff'])].alt_rel.mean()
-print(json.dumps(res,indent=1,default=float))
-json.dump(res,open('stats.json','w'),default=float,indent=1)
-f.to_pickle('flight.pkl')
+
+import pandas as pd
+
+HERE = Path(__file__).resolve().parent
+H = 45.0                                   # задана висота, м
+TARGET = (-35.3630965, 149.1637991)        # цільова точка варіанта 17
+MODES = {0: "STABILIZE", 3: "AUTO", 4: "GUIDED"}
+
+
+def distance_m(lat1, lon1, lat2, lon2):
+    """Відстань між двома точками WGS 84 (формула гаверсинуса), м."""
+    r = 6371000
+    p1, p2 = math.radians(lat1), math.radians(lat2)
+    dp, dl = p2 - p1, math.radians(lon2 - lon1)
+    h = math.sin(dp / 2) ** 2 + math.cos(p1) * math.cos(p2) * math.sin(dl / 2) ** 2
+    return 2 * r * math.asin(math.sqrt(h))
+
+
+def first_time(cond):
+    """Перший момент часу t, у який виконується умова."""
+    return float(f.loc[cond, "t"].iloc[0])
+
+
+df = pd.read_pickle(HERE / "all.pkl")
+armed = df[df["armed"]]
+i_arm, i_disarm = armed.index[0], armed.index[-1]
+
+f = df.loc[i_arm:i_disarm].copy()
+f["t"] = f["boot"] - df["boot"][i_arm]     # час від arm, с (час автопілота)
+f.to_pickle(HERE / "flight.pkl")
+
+# межі етапів за висотою
+t_lift = first_time(f["alt_rel"] > 0.2)                       # відрив від землі
+t_3m = first_time(f["alt_rel"] > 2.9)                         # GUIDED-зліт на 3 м
+t_auto = first_time((f["mode"] == 3) & (f["alt_rel"] > 3.2))  # почався набір в AUTO
+t_top = first_time((f["t"] > t_auto) & (f["alt_rel"] > H - 0.1))
+t_desc = first_time((f["t"] > t_top + 30) & (f["alt_rel"] < H - 0.1))
+t_land = first_time((f["t"] > t_desc) & (f["alt_rel"] < 0.3))
+
+start, end = f.iloc[0], f.iloc[-1]
+before = df.loc[i_arm - 1]                 # останній рядок перед arm
+after = df.iloc[-1]                        # кінець журналу, після disarm
+
+stats = {
+    "takeoff_time_s": (t_3m - t_lift) + (t_top - t_auto),   # без зависання
+    "flight_time_s": t_land - t_lift,
+    "max_alt_m": f["alt_rel"].max(),
+    "max_groundspeed": f["groundspeed"].max(),
+    "max_airspeed": f["airspeed"].max(),
+    "max_roll_deg": f["roll"].abs().max(),
+    "start": [start["lat"], start["lon"]],
+    "end": [end["lat"], end["lon"]],
+    "landing_error_m": distance_m(end["lat"], end["lon"], *TARGET),
+    "modes_in_mission": [MODES.get(m, m) for m in f["mode"].drop_duplicates()],
+    "armed_before": bool(before["armed"]),
+    "armed_after": bool(after["armed"]),
+    "phases_s": {"lift": t_lift, "3m": t_3m, "auto": t_auto, "top": t_top,
+                 "descent": t_desc, "touchdown": t_land},
+}
+print(json.dumps(stats, indent=1, ensure_ascii=False, default=float))
+with open(HERE / "stats.json", "w") as fh:
+    json.dump(stats, fh, indent=1, ensure_ascii=False, default=float)

@@ -1,2 +1,4 @@
 #!/usr/bin/env bash
-pkill -f QGroundControl 2>/dev/null; ~/fpv_labs/scripts/stop_sim.sh
+# Зупинка QGroundControl і всіх процесів симуляції
+pkill -f QGroundControl 2>/dev/null
+~/fpv_labs/scripts/stop_sim.sh
